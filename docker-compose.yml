@@ -1,0 +1,75 @@
+version: '3'
+services:
+  mysql-container:
+    image: mysql:8.0
+    container_name: mysql-container
+    networks:
+      - docker-network
+    environment:
+      MYSQL_ROOT_PASSWORD: hrmad
+      MYSQL_DATABASE: docker_assignment
+      MYSQL_USER: hdawwas
+      MYSQL_PASSWORD: hrmad
+    ports:
+      - "3306:3306"
+      
+  mongodb-container:
+    image: mongo:latest
+    container_name: mongodb-container
+    networks:
+      - docker-network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: analytics_db
+      MONGO_INITDB_USERNAME: hdawwas
+      MONGO_INITDB_PASSWORD: hrmad
+    ports:
+      - "27017:27017"
+      
+  authentication-app:
+    image: authentication-app 
+    container_name: authentication-app
+    networks:
+      - docker-network
+    ports:
+      - "8081:8081"
+
+  enter-data-web-app:
+    image: enter-data-web-app 
+    container_name: enter-data-web-app
+    command: sh -c "sleep 30 && java -jar app.jar"
+    networks:
+      - docker-network
+    ports:
+      - "8080:8080"
+    depends_on:
+      - authentication-app
+      - mysql-container
+
+
+  analytics-app:
+    image: analytics-app 
+    container_name: analytics-app
+    command: sh -c "sleep 30 && java -jar app.jar"
+    networks:
+      - docker-network
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql-container
+
+  show-results-app:
+    image: show-results-app 
+    container_name: show-results-app
+    networks:
+      - docker-network
+    ports:
+      - "8083:8083"
+    depends_on:
+      - authentication-app
+      - analytics-app
+
+networks:
+  docker-network:
+    driver: bridge
